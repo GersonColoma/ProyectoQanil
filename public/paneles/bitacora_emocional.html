@@ -1,0 +1,44 @@
+<!-- public/paneles/bitacora_emocional.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bitácora Emocional</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header>
+    <h1>Bitácora Emocional del Estudiante</h1>
+    <a href="panel_estudiantes.html" class="btn">← Regresar al Panel</a>
+  </header>
+
+  <main>
+    <form id="emocionForm">
+      <label for="emocion">¿Cómo te sientes hoy?</label>
+      <select id="emocion" required>
+        <option value="">Selecciona una emoción</option>
+        <option value="Feliz">😊 Feliz</option>
+        <option value="Triste">😢 Triste</option>
+        <option value="Ansioso">😟 Ansioso</option>
+        <option value="Enojado">😡 Enojado</option>
+        <option value="Motivado">💪 Motivado</option>
+        <option value="Confundido">🤔 Confundido</option>
+      </select>
+
+      <label for="comentario">¿Quieres contarnos más?</label>
+      <textarea id="comentario" rows="4" placeholder="Escribe aquí... (opcional)"></textarea>
+
+      <button type="submit" class="btn">Registrar</button>
+    </form>
+
+    <section id="registros">
+      <h2>Registros Recientes</h2>
+      <ul id="listaRegistros"></ul>
+    </section>
+  </main>
+
+  <script src="../scripts/bitacora.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Estudiantes - Colegio Q'nil</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <h2>Panel de Estudiantes</h2>
+  <p id="estado">Cargando...</p>
+
+  <!-- Firebase SDK compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
+  <script src="/__/firebase/init.js"></script>
+  <script src="interacciones.js"></script>
+
+  <script>
+    (async function () {
+      const estado = document.getElementById("estado");
+
+      if (!window.firebase) {
+        estado.textContent = "❌ Firebase no cargó.";
+        return;
+      }
+
+      try {
+        // Activar App Check antes de Auth
+        const appCheck = firebase.appCheck();
+        appCheck.activate(
+          "6LcXGUoqAAAAAOXhmyIhiLPelg-D6DrPhnHI0JQd",
+          true // token auto-refresh
+        );
+        console.log("✅ App Check activado en estudiantes");
+      } catch (e) {
+        console.warn("⚠ No se pudo activar App Check:", e);
+      }
+
+      const auth = firebase.auth();
+      auth.useDeviceLanguage();
+
+      // Mantener sesión en el navegador
+      try {
+        await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+        console.log("✅ Persistencia habilitada en estudiantes.html");
+      } catch (err) {
+        console.error("❌ Error persistencia estudiantes:", err);
+      }
+
+      // Esperar estado de usuario
+      auth.onAuthStateChanged((user) => {
+        console.log("🔎 onAuthStateChanged(estudiantes):", user?.email || null);
+
+        if (user) {
+          estado.textContent = `Bienvenido, ${user.email}`;
+          // Registrar visita
+          if (typeof registrarInteraccion === "function") {
+            registrarInteraccion(
+              "visita_estudiantes",
+              "El usuario abrió la página de estudiantes"
+            );
+          }
+        } else {
+          estado.textContent = "Sesión expirada. Redirigiendo a login...";
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1500);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
+

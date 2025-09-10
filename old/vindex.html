@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión OTP con Firebase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+
+    <!-- Incluye Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js";
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-app-check.js";
+
+        // Configuración de Firebase para tu proyecto
+        const firebaseConfig = {
+
+  apiKey: "AIzaSyDExIysAk3D-cdMaSKatJwAhPfAeTLd-nc",
+
+  authDomain: "proyectoq-68c43.firebaseapp.com",
+
+  projectId: "proyectoq-68c43",
+
+  storageBucket: "proyectoq-68c43.appspot.com",
+
+  messagingSenderId: "943912549434",
+
+  appId: "1:943912549434:web:8571268d93ce7f20784903"
+
+};
+
+
+
+        // Inicializa Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Inicializa Firebase App Check con reCAPTCHA v3
+        const appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider('6LcXGUoqAAAAAOXhmyIhiLPelg-D6DrPhnHI0JQd'),
+            isTokenAutoRefreshEnabled: true
+        });
+
+        // Configura el reCAPTCHA para la verificación de OTP
+        window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
+            'size': 'invisible',
+            'callback': function(response) {
+                sendOTP(); // Llama a sendOTP después de resolver el reCAPTCHA
+            }
+        }, auth);
+
+        // Función para iniciar sesión con correo electrónico
+        window.emailLogin = function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Sesión iniciada correctamente
+                    alert('Inicio de sesión exitoso');
+                })
+                .catch((error) => {
+                    errorMsg.textContent = 'Error al iniciar sesión con correo: ' + error.message;
+                });
+        };
+
+        // Función para iniciar sesión con Google
+        window.googleLogin = function() {
+            const provider = new GoogleAuthProvider();
+            const errorMsg = document.getElementById('errorMsg');
+
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    // Sesión iniciada correctamente
+                    alert('Inicio de sesión exitoso con Google');
+                })
+                .catch((error) => {
+                    errorMsg.textContent = 'Error al iniciar sesión con Google: ' + error.message;
+                });
+        };
+
+        // Función para enviar OTP por SMS
+        window.sendOTP = function() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            // Validación básica para el formato de número de teléfono de Guatemala
+            const guatemalaPhoneRegex = /^(\+502)?\d{8}$/;
+
+            if (!guatemalaPhoneRegex.test(phoneNumber)) {
+                errorMsg.textContent = 'Por favor, ingresa un número de teléfono válido de Guatemala.';
+                return;
+            }
+
+            const appVerifier = window.recaptchaVerifier;
+
+            // Enviar el OTP utilizando Firebase
+            signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+                .then((confirmationResult) => {
+                    // SMS enviado
+                    window.confirmationResult = confirmationResult;
+                    document.getElementById('otpSection').style.display = 'block';
+                    errorMsg.textContent = '';
+                }).catch((error) => {
+                    errorMsg.textContent = 'Error al enviar OTP: ' + error.message;
+                });
+        };
+
+        // Función para verificar OTP
+        window.verifyOTP = function() {
+            const otpCode = document.getElementById('otpCode').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            // Verificar el OTP
+            window.confirmationResult.confirm(otpCode).then((result) => {
+                // Usuario autenticado correctamente
+                const user = result.user;
+                alert('Inicio de sesión exitoso');
+            }).catch((error) => {
+                errorMsg.textContent = 'OTP incorrecto, por favor intente de nuevo.';
+            });
+        };
+    </script>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>Inicio de Sesión</h2>
+
+        <!-- Inicio de sesión con correo y contraseña -->
+        <input type="text" id="email" placeholder="Correo electrónico" required>
+        <input type="password" id="password" placeholder="Contraseña" required>
+        <button type="button" onclick="emailLogin()">Iniciar sesión con Correo</button>
+
+        <!-- Inicio de sesión con Google -->
+        <button type="button" onclick="googleLogin()">Iniciar sesión con Google</button>
+
+        <hr>
+
+        <!-- Inicio de sesión con OTP (Teléfono) -->
+        <div id="recaptcha-container"></div>
+        <input type="text" id="phoneNumber" placeholder="Número de teléfono (+502)" required>
+        <button type="button" onclick="sendOTP()">Enviar OTP</button>
+
+        <div id="otpSection" style="display:none;">
+            <input type="password" id="otpCode" placeholder="Ingrese el OTP" required>
+            <button type="button" onclick="verifyOTP()">Verificar OTP</button>
+        </div>
+
+        <!-- Mensaje de error -->
+        <p class="error" id="errorMsg"></p>
+    </div>
+
+</body>
+</html>
+

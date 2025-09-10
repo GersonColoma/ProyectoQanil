@@ -1,0 +1,35 @@
+<!-- index.html (Landing Page) -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Colegio Q'nil - Plataforma</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="interacciones.js"></script>
+
+</head>
+<body>
+  <header>
+    <h1>Colegio Q'nil</h1>
+    <nav>
+      <ul>
+      <li><a href="index.html"><i class="fas fa-home"></i> Inicio</a></li>
+      <li><a href="maestros.html"><i class="fas fa-chalkboard-teacher"></i> Maestros</a></li>
+      <li><a href="padres.html"><i class="fas fa-user-friends"></i> Padres</a></li>
+      <li><a href="estudiantes.html"><i class="fas fa-user-graduate"></i> Estudiantes</a></li>
+      <a href="panel_indicadores.html" class="btn">Ver Indicadores de Acompañamiento Familiar</a>
+<li><a href="admin.html"><i class="fas fa-user-cog"></i> Admin</a></li>
+
+     </ul>
+    </nav>
+  </header>
+  <main>
+    <section class="bienvenida">
+      <h2>Bienvenidos a la Agenda Digital Interactiva</h2>
+      <p>Una plataforma para mejorar la comunicación entre el Colegio Q'nil, maestros, padres de familia y estudiantes.</p>
+    </section>
+  </main>
+</body>
+</html>

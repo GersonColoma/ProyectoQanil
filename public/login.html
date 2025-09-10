@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Colegio Q'nil</title>
+</head>
+<body>
+  <h2>Iniciar Sesión</h2>
+  <input type="email" id="email" placeholder="Correo" autocomplete="username" /><br /><br />
+  <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password" /><br /><br />
+  <button id="loginBtn">Iniciar Sesión</button>
+  <button id="registerBtn">Registrarse</button>
+  <p id="msg" style="font-family: system-ui, sans-serif;"></p>
+
+  <!-- SDKs Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
+  <!-- Auto-inicialización de Firebase Hosting -->
+  <script src="/__/firebase/init.js"></script>
+
+  <script>
+    (function () {
+      const msg = (t, isErr = false) => {
+        const el = document.getElementById("msg");
+        el.textContent = t;
+        el.style.color = isErr ? "crimson" : "inherit";
+        console[isErr ? "error" : "log"](t);
+      };
+
+      if (!window.firebase) {
+        msg("❌ Firebase no está disponible", true);
+        return;
+      }
+
+      const auth = firebase.auth();
+
+      try {
+        const appCheck = firebase.appCheck();
+        appCheck.activate("6LcXGUoqAAAAAOXhmyIhiLPelg-D6DrPhnHI0JQd", true);
+        console.log("✅ App Check activado en login");
+      } catch (e) {
+        console.warn("⚠ No se pudo activar App Check en login:", e);
+      }
+
+      auth.useDeviceLanguage();
+      auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => console.log("✅ Persistencia LOCAL activada en login"))
+        .catch((err) => console.error("❌ Error persistencia (login):", err));
+
+      auth.onAuthStateChanged((user) => {
+        console.log("🔎 onAuthStateChanged(login):", user?.email || null);
+        if (user) window.location.href = "index.html";
+      });
+
+      document.getElementById("loginBtn").addEventListener("click", async () => {
+        const email = document.getElementById("email").value.trim();
+        const pass = document.getElementById("password").value.trim();
+
+        if (!email || !pass) return msg("⚠ Ingresa correo y contraseña", true);
+
+        try {
+          await auth.signInWithEmailAndPassword(email, pass);
+          msg("✅ Sesión iniciada. Redirigiendo...");
+        } catch (error) {
+          msg(`❌ Error: ${error.code}`, true);
+        }
+      });
+
+      document.getElementById("registerBtn").addEventListener("click", async () => {
+        const email = document.getElementById("email").value.trim();
+        const pass = document.getElementById("password").value.trim();
+        if (!email || !pass) return msg("⚠ Ingresa correo y contraseña", true);
+
+        try {
+          await auth.createUserWithEmailAndPassword(email, pass);
+          msg("✅ Usuario registrado. Ya puedes iniciar sesión.");
+        } catch (error) {
+          msg(`❌ Registro error: ${error.code}`, true);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
+

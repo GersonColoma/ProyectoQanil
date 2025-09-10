@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bitácora Emocional</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="/__/firebase/init.js"></script>
+  <!-- Registro de interacciones -->
+  <script src="interacciones.js"></script>
+</head>
+<body>
+  <h1>Bitácora Emocional</h1>
+
+  <label for="emocion">¿Cómo te sientes hoy?</label>
+  <select id="emocion">
+    <option value="feliz">😊 Feliz</option>
+    <option value="triste">😢 Triste</option>
+    <option value="enojado">😠 Enojado</option>
+    <option value="ansioso">😰 Ansioso</option>
+  </select>
+  <br><br>
+
+  <textarea id="comentario" placeholder="Escribe un comentario..."></textarea>
+  <br><br>
+
+  <button onclick="enviarBitacora()">Enviar Bitácora</button>
+
+  <script>
+    function enviarBitacora() {
+      const emocion = document.getElementById("emocion").value;
+      const comentario = document.getElementById("comentario").value;
+
+      registrarInteraccion("bitacora_emocional", `Emoción: ${emocion}, Comentario: ${comentario}`);
+      alert("✅ Bitácora enviada");
+    }
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        console.warn("⚠ No hay sesión activa. Redirigiendo a login...");
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+</body>
+</html>
+
