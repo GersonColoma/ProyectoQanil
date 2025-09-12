@@ -67,3 +67,17 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de backup de editores
+*.swp
+*.swo
+*~
+
+# Configuración de IDE
+.vscode/
+.idea/
+
