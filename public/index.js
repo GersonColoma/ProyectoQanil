@@ -9,7 +9,7 @@
 
   try {
     const appCheck = firebase.appCheck();
-    appCheck.activate("6LcXGUoqAAAAAOXhmyIhiLPelg-D6DrPhnHI0JQd", true);
+    appCheck.activate("6LdZBccrAAAAAI9RxpzFV8ghXgQ8jahm9tR5wmo0", true);
     console.log("✅ App Check activado en index");
   } catch (e) {
     console.warn("⚠ No se pudo activar App Check en index:", e);

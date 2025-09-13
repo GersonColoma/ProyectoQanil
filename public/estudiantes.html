@@ -9,6 +9,30 @@
   <h2>Panel de Estudiantes</h2>
   <p id="estado">Cargando...</p>
 
+  <!-- Formulario Bitácora -->
+  <section id="bitacora" style="display:none;">
+    <h3>Bitácora Emocional</h3>
+    <form id="formBitacora">
+      <label>¿Cómo te sientes hoy?</label><br />
+      <select id="emocion" required>
+        <option value="">-- Selecciona --</option>
+        <option value="🙂 Feliz">🙂 Feliz</option>
+        <option value="😐 Neutral">😐 Neutral</option>
+        <option value="😔 Triste">😔 Triste</option>
+        <option value="😡 Enojado">😡 Enojado</option>
+        <option value="😴 Cansado">😴 Cansado</option>
+      </select><br /><br />
+
+      <label>Comentario (opcional):</label><br />
+      <textarea id="comentario" rows="3"></textarea><br /><br />
+
+      <button type="submit">Guardar</button>
+    </form>
+
+    <h3>Mis registros</h3>
+    <ul id="listaBitacora"></ul>
+  </section>
+
   <!-- Firebase SDK compat -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -20,6 +44,9 @@
   <script>
     (async function () {
       const estado = document.getElementById("estado");
+      const sectionBitacora = document.getElementById("bitacora");
+      const formBitacora = document.getElementById("formBitacora");
+      const listaBitacora = document.getElementById("listaBitacora");
 
       if (!window.firebase) {
         estado.textContent = "❌ Firebase no cargó.";
@@ -27,21 +54,17 @@
       }
 
       try {
-        // Activar App Check antes de Auth
         const appCheck = firebase.appCheck();
-        appCheck.activate(
-          "6LcXGUoqAAAAAOXhmyIhiLPelg-D6DrPhnHI0JQd",
-          true // token auto-refresh
-        );
+        appCheck.activate("6LdZBccrAAAAAI9RxpzFV8ghXgQ8jahm9tR5wmo0", true);
         console.log("✅ App Check activado en estudiantes");
       } catch (e) {
         console.warn("⚠ No se pudo activar App Check:", e);
       }
 
       const auth = firebase.auth();
+      const db = firebase.firestore();
       auth.useDeviceLanguage();
 
-      // Mantener sesión en el navegador
       try {
         await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
         console.log("✅ Persistencia habilitada en estudiantes.html");
@@ -49,12 +72,17 @@
         console.error("❌ Error persistencia estudiantes:", err);
       }
 
-      // Esperar estado de usuario
+      // --- Sesión de usuario ---
       auth.onAuthStateChanged((user) => {
         console.log("🔎 onAuthStateChanged(estudiantes):", user?.email || null);
 
         if (user) {
+          console.log("UID del usuario:", user.uid);
+          console.log("Email verificado:", user.emailVerified);
+
           estado.textContent = `Bienvenido, ${user.email}`;
+          sectionBitacora.style.display = "block";
+
           // Registrar visita
           if (typeof registrarInteraccion === "function") {
             registrarInteraccion(
@@ -62,6 +90,38 @@
               "El usuario abrió la página de estudiantes"
             );
           }
+
+          // Mostrar registros previos
+          cargarBitacora(user);
+
+          // Manejar envío del formulario
+          formBitacora.onsubmit = async (e) => {
+            e.preventDefault();
+            const emocion = document.getElementById("emocion").value;
+            const comentario = document.getElementById("comentario").value.trim();
+
+            if (!emocion) {
+              alert("Selecciona una emoción antes de guardar.");
+              return;
+            }
+
+            try {
+              await db.collection("bitacora_emocional").add({
+                userId: user.uid, // 👈 importante
+                email: user.email,
+                emocion,
+                comentario,
+                fecha: firebase.firestore.FieldValue.serverTimestamp(),
+              });
+
+              formBitacora.reset();
+              cargarBitacora(user); // refrescar lista
+              alert("✅ Registro guardado en la bitácora");
+            } catch (err) {
+              console.error("❌ Error guardando bitácora:", err);
+              alert("Error al guardar. Revisa la consola.");
+            }
+          };
         } else {
           estado.textContent = "Sesión expirada. Redirigiendo a login...";
           setTimeout(() => {
@@ -69,6 +129,35 @@
           }, 1500);
         }
       });
+
+      // --- Función para cargar bitácora ---
+      async function cargarBitacora(user) {
+        listaBitacora.innerHTML = "Cargando...";
+        try {
+          const snap = await db.collection("bitacora_emocional")
+            .where("userId", "==", user.uid) // 👈 consistente con las reglas
+            .orderBy("fecha", "desc")
+            .limit(10)
+            .get();
+
+          if (snap.empty) {
+            listaBitacora.innerHTML = "<li>Sin registros aún</li>";
+            return;
+          }
+
+          listaBitacora.innerHTML = "";
+          snap.forEach((doc) => {
+            const data = doc.data();
+            const fecha = data.fecha?.toDate().toLocaleString("es-GT") || "sin fecha";
+            const li = document.createElement("li");
+            li.textContent = `${fecha} - ${data.emocion} ${data.comentario ? " | " + data.comentario : ""}`;
+            listaBitacora.appendChild(li);
+          });
+        } catch (err) {
+          console.error("❌ Error cargando bitácora:", err);
+          listaBitacora.innerHTML = "<li>Error al cargar registros</li>";
+        }
+      }
     })();
   </script>
 </body>
